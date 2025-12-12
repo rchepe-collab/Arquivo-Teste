@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Task Commander - Gerenciador de Tarefas com Sistema de Pontos">
+    <meta name="author" content="Rick - Lionheart BTO">
+    <title>Task Commander - Gerenciador de Tarefas</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px 20px 100px 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .logo { font-size: 28px; font-weight: bold; color: #c084fc; margin-bottom: 5px; }
+        .subtitle { font-size: 12px; color: rgba(192, 132, 252, 0.7); }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-icon { font-size: 32px; }
+        .stat-value { font-size: 28px; font-weight: bold; margin: 10px 0; }
+        .stat-label { font-size: 12px; color: rgba(192, 132, 252, 0.7); }
+        
+        .tab-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-btn {
+            padding: 15px;
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #c084fc;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .tab-btn.active {
+            background: rgba(168, 85, 247, 0.3);
+            border-color: #a855f7;
+            color: white;
+        }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .info-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .info-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .info-row:last-child { border-bottom: none; }
+        
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        
+        .filter-btn {
+            padding: 10px 15px;
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #c084fc;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        
+        .filter-btn.active {
+            background: rgba(168, 85, 247, 0.3);
+            border-color: #a855f7;
+            color: white;
+        }
+        
+        .task {
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #3b82f6;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .task.critica { border-left-color: #ef4444; }
+        .task.urgente { border-left-color: #f59e0b; }
+        
+        .task-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .task-info {
+            font-size: 14px;
+            color: rgba(192, 132, 252, 0.7);
+            margin-bottom: 5px;
+        }
+        
+        .task-buttons {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .task-buttons select {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid rgba(168, 85, 247, 0.5);
+            border-radius: 8px;
+            background: rgba(168, 85, 247, 0.2);
+            color: white;
+            font-size: 14px;
+        }
+        
+        .task-buttons button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(239, 68, 68, 0.3);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        
+        .empty {
+            text-align: center;
+            padding: 50px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+        }
+        
+        .empty-icon { font-size: 48px; margin-bottom: 15px; }
+        
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: white;
+            font-size: 50px;
+            line-height: 1;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.8);
+            z-index: 999;
+            cursor: pointer;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+        }
+        
+        .modal-overlay.hidden { display: none; }
+        
+        .modal-box {
+            background: #1e1b4b;
+            border-radius: 25px 25px 0 0;
+            padding: 25px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 10000;
+        }
+        
+        .modal-header {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .close-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 30px;
+            line-height: 1;
+            cursor: pointer;
+        }
+        
+        .form-field { margin-bottom: 20px; }
+        
+        .form-label {
+            display: block;
+            color: #c084fc;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 16px;
+        }
+        
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-buttons {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: rgba(192, 132, 252, 0.5);
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">⚡ Task Commander</div>
+        <div class="subtitle">Gerencie suas tarefas com sistema de pontos</div>
+    </div>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-value"><span id="totalPoints">0</span></div>
+            <div class="stat-label">PONTOS</div>
+        </div>
+        <div class="stat">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value"><span id="totalDone">0</span></div>
+            <div class="stat-label">CONCLUÍDAS</div>
+        </div>
+    </div>
+
+    <div class="tab-buttons">
+        <button class="tab-btn active" onclick="mudaAba('dashboard', this)">📊 Dashboard</button>
+        <button class="tab-btn" onclick="mudaAba('timeline', this)">📅 Timeline</button>
+        <button class="tab-btn" onclick="mudaAba('tasks', this)">✅ Tarefas</button>
+    </div>
+
+    <div id="tab-dashboard" class="tab-content active">
+        <div class="info-card">
+            <div class="info-title">📊 Status Geral</div>
+            <div class="info-row"><span>Total de Tarefas</span><span id="stat-total">0</span></div>
+            <div class="info-row"><span>Concluídas</span><span id="stat-done">0</span></div>
+            <div class="info-row"><span>Pendentes</span><span id="stat-pending">0</span></div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-title">🎯 Por Criticidade</div>
+            <div class="info-row"><span>🔴 Críticas</span><span id="stat-critical">0</span></div>
+            <div class="info-row"><span>🟠 Urgentes</span><span id="stat-urgent">0</span></div>
+            <div class="info-row"><span>🔵 Normais</span><span id="stat-normal">0</span></div>
+        </div>
+    </div>
+
+    <div id="tab-timeline" class="tab-content">
+        <div class="filters">
+            <button class="filter-btn active" onclick="filtrarTipo('all', this)">📅 Todas</button>
+            <button class="filter-btn" onclick="filtrarTipo('diaria', this)">☀️ Diárias</button>
+            <button class="filter-btn" onclick="filtrarTipo('semanal', this)">📆 Semanais</button>
+            <button class="filter-btn" onclick="filtrarTipo('mensal', this)">🗓️ Mensais</button>
+        </div>
+        <div id="timelineList"></div>
+    </div>
+
+    <div id="tab-tasks" class="tab-content">
+        <div class="filters">
+            <button class="filter-btn active" onclick="filtrarStatus('all', this)">📋 Todas</button>
+            <button class="filter-btn" onclick="filtrarStatus('pendente', this)">⏰ Pendentes</button>
+            <button class="filter-btn" onclick="filtrarStatus('em_andamento', this)">⚡ Andamento</button>
+            <button class="filter-btn" onclick="filtrarStatus('concluida', this)">✓ Concluídas</button>
+        </div>
+        <div id="tasksList"></div>
+    </div>
+
+    <button class="fab" onclick="abrirModal()">+</button>
+
+    <div id="modalOverlay" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span>🚀 Nova Tarefa</span>
+                <button class="close-btn" onclick="fecharModal()">×</button>
+            </div>
+            
+            <div class="form-field">
+                <label class="form-label">Título</label>
+                <input type="text" class="form-input" id="taskTitle" placeholder="Ex: Estudar JavaScript">
+            </div>
+            
+            <div class="form-field">
+                <label class="form-label">Criticidade</label>
+                <select class="form-select" id="taskCriticality">
+                    <option value="critica">🔴 Crítica</option>
+                    <option value="urgente">🟠 Urgente</option>
+                    <option value="normal" selected>🔵 Normal</option>
+                </select>
+            </div>
+            
+            <div class="form-field">
+                <label class="form-label">Tipo</label>
+                <select class="form-select" id="taskType">
+                    <option value="diaria">Diária (10 pts)</option>
+                    <option value="semanal">Semanal (25 pts)</option>
+                    <option value="mensal">Mensal (50 pts)</option>
+                </select>
+            </div>
+            
+            <div class="form-field">
+                <label class="form-label">Data</label>
+                <input type="date" class="form-input" id="taskDate">
+            </div>
+            
+            <div class="form-field">
+                <label class="form-label">Descrição (opcional)</label>
+                <textarea class="form-textarea" id="taskDescription" placeholder="Detalhes da tarefa..."></textarea>
+            </div>
+            
+            <div class="form-buttons">
+                <button class="btn btn-cancel" onclick="fecharModal()">Cancelar</button>
+                <button class="btn btn-submit" onclick="criarTarefa()">🚀 Criar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Desenvolvido por Rick - Lionheart BTO © 2024
+    </div>
+
+    <script>
+        var tasks = [];
+        var filtroTipo = 'all';
+        var filtroStatus = 'all';
+        
+        window.onload = function() {
+            carregarDados();
+            setarDataHoje();
+            atualizarStats();
+            renderizarTudo();
+        };
+        
+        function setarDataHoje() {
+            var hoje = new Date();
+            var dia = String(hoje.getDate()).padStart(2, '0');
+            var mes = String(hoje.getMonth() + 1).padStart(2, '0');
+            var ano = hoje.getFullYear();
+            document.getElementById('taskDate').value = ano + '-' + mes + '-' + dia;
+        }
+        
+        function salvarDados() {
+            try {
+                localStorage.setItem('taskCommanderData', JSON.stringify(tasks));
+            } catch(e) {}
+        }
+        
+        function carregarDados() {
+            try {
+                var dados = localStorage.getItem('taskCommanderData');
+                if (dados) {
+                    tasks = JSON.parse(dados);
+                }
+            } catch(e) {}
+        }
+        
+        function abrirModal() {
+            document.getElementById('modalOverlay').className = 'modal-overlay';
+        }
+        
+        function fecharModal() {
+            document.getElementById('modalOverlay').className = 'modal-overlay hidden';
+        }
+        
+        function mudaAba(aba, botao) {
+            var todasAbas = document.querySelectorAll('.tab-content');
+            for (var i = 0; i < todasAbas.length; i++) {
+                todasAbas[i].className = 'tab-content';
+            }
+            
+            var todosBotoes = document.querySelectorAll('.tab-btn');
+            for (var i = 0; i < todosBotoes.length; i++) {
+                todosBotoes[i].className = 'tab-btn';
+            }
+            
+            document.getElementById('tab-' + aba).className = 'tab-content active';
+            botao.className = 'tab-btn active';
+            
+            if (aba === 'timeline') renderizarTimeline();
+            if (aba === 'tasks') renderizarTarefas();
+        }
+        
+        function filtrarTipo(tipo, botao) {
+            filtroTipo = tipo;
+            var botoes = botao.parentElement.children;
+            for (var i = 0; i < botoes.length; i++) {
+                botoes[i].className = 'filter-btn';
+            }
+            botao.className = 'filter-btn active';
+            renderizarTimeline();
+        }
+        
+        function filtrarStatus(status, botao) {
+            filtroStatus = status;
+            var botoes = botao.parentElement.children;
+            for (var i = 0; i < botoes.length; i++) {
+                botoes[i].className = 'filter-btn';
+            }
+            botao.className = 'filter-btn active';
+            renderizarTarefas();
+        }
+        
+        function criarTarefa() {
+            var titulo = document.getElementById('taskTitle').value;
+            
+            if (!titulo || titulo.trim() === '') {
+                alert('⚠️ Digite um título para a tarefa!');
+                return;
+            }
+            
+            var tipo = document.getElementById('taskType').value;
+            var pontos = tipo === 'diaria' ? 10 : tipo === 'semanal' ? 25 : 50;
+            
+            tasks.push({
+                id: new Date().getTime(),
+                title: titulo,
+                criticality: document.getElementById('taskCriticality').value,
+                type: tipo,
+                date: document.getElementById('taskDate').value,
+                description: document.getElementById('taskDescription').value,
+                points: pontos,
+                status: 'pendente'
+            });
+            
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDescription').value = '';
+            setarDataHoje();
+            
+            salvarDados();
+            atualizarStats();
+            renderizarTudo();
+            fecharModal();
+            
+            alert('✅ Tarefa criada com sucesso!');
+        }
+        
+        function atualizarStats() {
+            var total = tasks.length;
+            var concluidas = 0;
+            var pendentes = 0;
+            var criticas = 0;
+            var urgentes = 0;
+            var normais = 0;
+            var pontos = 0;
+            
+            for (var i = 0; i < tasks.length; i++) {
+                if (tasks[i].status === 'concluida') {
+                    concluidas++;
+                    pontos += tasks[i].points;
+                }
+                if (tasks[i].status === 'pendente') pendentes++;
+                if (tasks[i].criticality === 'critica') criticas++;
+                if (tasks[i].criticality === 'urgente') urgentes++;
+                if (tasks[i].criticality === 'normal') normais++;
+            }
+            
+            document.getElementById('totalPoints').textContent = pontos;
+            document.getElementById('totalDone').textContent = concluidas;
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-done').textContent = concluidas;
+            document.getElementById('stat-pending').textContent = pendentes;
+            document.getElementById('stat-critical').textContent = criticas;
+            document.getElementById('stat-urgent').textContent = urgentes;
+            document.getElementById('stat-normal').textContent = normais;
+        }
+        
+        function renderizarTudo() {
+            renderizarTimeline();
+            renderizarTarefas();
+        }
+        
+        function renderizarTimeline() {
+            var lista = filtroTipo === 'all' ? tasks.slice() : [];
+            
+            if (filtroTipo !== 'all') {
+                for (var i = 0; i < tasks.length; i++) {
+                    if (tasks[i].type === filtroTipo) {
+                        lista.push(tasks[i]);
+                    }
+                }
+            }
+            
+            var container = document.getElementById('timelineList');
+            
+            if (lista.length === 0) {
+                container.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><div>Nenhuma tarefa</div><div style="font-size: 14px; margin-top: 10px; color: rgba(192, 132, 252, 0.5);">Clique no botão + para criar</div></div>';
+                return;
+            }
+            
+            lista.sort(function(a, b) {
+                return new Date(a.date) - new Date(b.date);
+            });
+            
+            var html = '';
+            for (var i = 0; i < lista.length; i++) {
+                html += criarCardTarefa(lista[i]);
+            }
+            container.innerHTML = html;
+        }
+        
+        function renderizarTarefas() {
+            var lista = filtroStatus === 'all' ? tasks.slice() : [];
+            
+            if (filtroStatus !== 'all') {
+                for (var i = 0; i < tasks.length; i++) {
+                    if (tasks[i].status === filtroStatus) {
+                        lista.push(tasks[i]);
+                    }
+                }
+            }
+            
+            var container = document.getElementById('tasksList');
+            
+            if (lista.length === 0) {
+                container.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div>Nenhuma tarefa</div><div style="font-size: 14px; margin-top: 10px; color: rgba(192, 132, 252, 0.5);">Clique no botão + para criar</div></div>';
+                return;
+            }
+            
+            var ordem = { critica: 0, urgente: 1, normal: 2 };
+            lista.sort(function(a, b) {
+                return ordem[a.criticality] - ordem[b.criticality];
+            });
+            
+            var html = '';
+            for (var i = 0; i < lista.length; i++) {
+                html += criarCardTarefa(lista[i]);
+            }
+            container.innerHTML = html;
+        }
+        
+        function criarCardTarefa(task) {
+            var icone = task.criticality === 'critica' ? '🔴' : task.criticality === 'urgente' ? '🟠' : '🔵';
+            var statusTexto = task.status === 'pendente' ? '⏰ Pendente' : task.status === 'em_andamento' ? '⚡ Andamento' : '✓ Concluída';
+            
+            var dataObj = new Date(task.date + 'T00:00:00');
+            var dataTexto = dataObj.getDate().toString().padStart(2, '0') + '/' + 
+                           (dataObj.getMonth() + 1).toString().padStart(2, '0');
+            
+            var html = '<div class="task ' + task.criticality + '">';
+            html += '<div class="task-title">' + icone + ' ' + task.title + '</div>';
+            html += '<div class="task-info">' + statusTexto + ' • ' + task.type + ' • 📅 ' + dataTexto + '</div>';
+            
+            if (task.description) {
+                html += '<div class="task-info">' + task.description + '</div>';
+            }
+            
+            html += '<div class="task-buttons">';
+            html += '<select onchange="mudarStatus(' + task.id + ', this.value)">';
+            html += '<option value="pendente"' + (task.status === 'pendente' ? ' selected' : '') + '>⏰ Pendente</option>';
+            html += '<option value="em_andamento"' + (task.status === 'em_andamento' ? ' selected' : '') + '>⚡ Andamento</option>';
+            html += '<option value="concluida"' + (task.status === 'concluida' ? ' selected' : '') + '>✓ Concluída</option>';
+            html += '</select>';
+            html += '<button onclick="deletarTarefa(' + task.id + ')">🗑️</button>';
+            html += '</div>';
+            html += '</div>';
+            
+            return html;
+        }
+        
+        function mudarStatus(taskId, novoStatus) {
+            for (var i = 0; i < tasks.length; i++) {
+                if (tasks[i].id === taskId) {
+                    tasks[i].status = novoStatus;
+                    break;
+                }
+            }
+            salvarDados();
+            atualizarStats();
+            renderizarTudo();
+        }
+        
+        function deletarTarefa(taskId) {
+            if (confirm('🗑️ Excluir esta tarefa?')) {
+                var novasTarefas = [];
+                for (var i = 0; i < tasks.length; i++) {
+                    if (tasks[i].id !== taskId) {
+                        novasTarefas.push(tasks[i]);
+                    }
+                }
+                tasks = novasTarefas;
+                salvarDados();
+                atualizarStats();
+                renderizarTudo();
+            }
+        }
+    </script>
+</body>
+</html>
